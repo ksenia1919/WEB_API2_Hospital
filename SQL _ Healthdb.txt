@@ -1,0 +1,96 @@
+-- Создание базы данных
+CREATE DATABASE Healthdb;
+GO
+
+-- Использование созданной базы данных
+USE Healthdb;
+GO
+
+-- Создание таблицы District
+CREATE TABLE Districts (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    Number INT NOT NULL
+);
+GO
+
+-- Создание таблицы Specialization
+CREATE TABLE Specializations (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    Name_s NVARCHAR(100) NOT NULL
+);
+GO
+
+-- Создание таблицы Cabinet
+CREATE TABLE Cabinets (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    Number INT NOT NULL
+);
+GO
+
+-- Создание таблицы Patient
+CREATE TABLE Patients (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    LastName NVARCHAR(100) NOT NULL,
+    FirstName NVARCHAR(100) NOT NULL,
+    MiddleName NVARCHAR(100),
+    Adress NVARCHAR(255),
+    DateOfBirth DATE NOT NULL,
+    Gender NVARCHAR(10) NOT NULL,
+    DistrictId INT NOT NULL,
+    FOREIGN KEY (DistrictId) REFERENCES Districts(Id) ON DELETE CASCADE
+);
+GO
+
+-- Создание таблицы Doctor
+CREATE TABLE Doctors (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    FullName NVARCHAR(255) NOT NULL,
+    CabinetId INT NOT NULL,
+    SpecializationId INT NOT NULL,
+    DistrictId INT,
+    FOREIGN KEY (CabinetId) REFERENCES Cabinets(Id) ON DELETE CASCADE,
+    FOREIGN KEY (SpecializationId) REFERENCES Specializations(Id) ON DELETE CASCADE,
+    FOREIGN KEY (DistrictId) REFERENCES Districts(Id) ON DELETE CASCADE
+);
+GO
+
+
+INSERT INTO Districts (Number)
+VALUES
+(1111),
+(2222),
+(3333),
+(4444),
+(5555);
+
+INSERT INTO Specializations (Name_s)
+VALUES
+('Терапевт'),
+('Хирург'),
+('Дерматолог'),
+('Психиатр'),
+('Невролог');
+
+INSERT INTO Cabinets (Number)
+VALUES
+(101),
+(102),
+(103),
+(104),
+(105);
+
+INSERT INTO Patients (LastName, FirstName, MiddleName, Adress, DateOfBirth, Gender, DistrictId)
+VALUES
+('Иванов', 'Иван', 'Иванович', 'ул. Ленина, д. 1', '1980-01-01', 'Мужской', 1),
+('Петров', 'Петр', 'Петрович', 'ул. Пушкина, д. 2', '1981-02-02', 'Мужской', 2),
+('Сидоров', 'Сидор', 'Сидорович', 'ул. Гагарина, д. 3', '1982-03-03', 'Мужской', 3),
+('Кузнецова', 'Ксения', 'Глебовна', 'ул. Мира, д. 4', '1983-04-04', 'Женский', 2),
+('Сударь', 'Павел', 'Павлович', 'ул. Октябрьская, д. 5', '1984-05-05', 'Мужской', 5);
+
+INSERT INTO Doctors (FullName, CabinetId, SpecializationId, DistrictId)
+VALUES
+('Айболит Павел Иванович', 1, 5, 1),
+('Эскулап Петр ', 2, 1, 2),
+('Гиппократ Сидор Сидорович', 3, 4, 3),
+('Гален Кузьма Кузьмич', 4, 3, 4),
+('Парацельс Павел Павлович', 5, 2, 5);

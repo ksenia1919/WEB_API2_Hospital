@@ -1,0 +1,182 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Список пациентов</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border: 1px solid black;
+        }
+
+        .add-form {
+            margin-top: 20px;
+        }
+
+        .add-form label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .add-form input,
+        .add-form select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .add-form button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Список пациентов</h1>
+
+    <table id="patientsTable">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Фамилия</th>
+                <th>Имя</th>
+                <th>Отчество</th>
+                <th>Пол</th>
+                <th>Дата рождения</th>
+                <th>Адрес</th>
+                <th>Район</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Данные будут добавлены здесь -->
+        </tbody>
+    </table>
+
+    <div class="add-form">
+        <h2>Добавить пациента</h2>
+        <form id="addPatientForm">
+            <label for="lastName">Фамилия:</label>
+            <input type="text" id="lastName" name="lastName">
+
+            <label for="firstName">Имя:</label>
+            <input type="text" id="firstName" name="firstName">
+
+            <label for="middleName">Отчество:</label>
+            <input type="text" id="middleName" name="middleName">
+
+            <label for="gender">Пол:</label>
+            <select id="gender" name="gender">
+                <option value="Мужской">Мужской</option>
+                <option value="Женский">Женский</option>
+            </select>
+
+            <label for="dateOfBirth">Дата рождения:</label>
+            <input type="date" id="dateOfBirth" name="dateOfBirth">
+
+            <label for="adress">Адрес:</label>
+            <input type="text" id="adress" name="adress">
+
+            <label for="districtId">Район:</label>
+            <select id="districtId" name="districtId">
+                <!-- Опции будут добавлены динамически -->
+            </select>
+
+            <button type="submit">Добавить</button>
+        </form>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script>
+        function addRowToTable(tableId, data, columns) {
+            var tableBody = $(`#${tableId} tbody`);
+            $.each(data, function (index, item) {
+                var row = $('<tr>');
+                $.each(columns, function (i, column) {
+                    var cell = $('<td>');
+                    cell.text(item[column]);
+                    row.append(cell);
+                });
+                tableBody.append(row);
+            });
+        }
+        function fetchData(url, tableId, columns) {
+            $.ajax({
+                url: url,
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    addRowToTable(tableId, data, columns);
+                },
+                error: function (error) {
+                    console.error("Ошибка получения данных:", error);
+                }
+            });
+        }
+        $(document).ready(function () {
+            fetchData("api/Patient", "patientsTable", ["Id", "LastName", "FirstName", "MiddleName", "Gender", "DateOfBirth", "Adress", "DistrictNumber"]);
+
+            $.ajax({
+                url: "api/District",
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    var districtSelect = $("#districtId");
+                    $.each(data, function (index, district) {
+                        districtSelect.append(`<option value="${district.Id}">${district.Number}</option>`);
+                    });
+                },
+                error: function (error) {
+                    console.error("Ошибка получения данных:", error);
+                }
+            });
+
+            $("#addPatientForm").submit(function (event) {
+                event.preventDefault(); 
+
+                var formData = {
+                    LastName: $("#lastName").val(),
+                    FirstName: $("#firstName").val(),
+                    MiddleName: $("#middleName").val(),
+                    Gender: $("#gender").val(),
+                    DateOfBirth: $("#dateOfBirth").val(),
+                    Adress: $("#adress").val(),
+                    DistrictId: parseInt($("#districtId").val())
+                };
+
+                $.ajax({
+                    url: "api/Patient",
+                    type: "POST",
+                    dataType: "json",
+                    data: JSON.stringify(formData),
+                    contentType: "application/json",
+                    success: function (data) {
+                        console.log("Пациент добавлен успешно!");
+                        $("#patientsTable tbody").empty();
+                        fetchData("api/Patient", "patientsTable", ["Id", "LastName", "FirstName", "MiddleName", "Gender", "DateOfBirth", "Adress", "DistrictNumber"]);
+                        $("#addPatientForm")[0].reset();
+                    },
+                    error: function (error) {
+                        console.error("Ошибка добавления пациента:", error);
+                    },
+                    complete: function () {
+                        console.log("Запрос завершен!");
+                        location.reload();
+                    }
+                });
+            });
+        });
+
+    </script>
+
+</body>
+</html>

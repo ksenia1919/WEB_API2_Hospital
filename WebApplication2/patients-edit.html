@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Редактирование пациентов</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Редактирование пациентов</h1>
+
+    <div id="patientsList">
+        <!-- Таблица пациентов будет добавлена сюда -->
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script>
+        $(function () {
+            fetchData("api/Patient", "patientsTable", ["Id", "LastName", "FirstName", "MiddleName", "Gender", "DateOfBirth", "Adress", "DistrictNumber"]);
+        });
+
+        function addRowToTable(tableId, data, columns) {
+            var tableBody = $(`#${tableId} tbody`);
+            $.each(data, function (index, item) {
+                var row = $('<tr>');
+                $.each(columns, function (i, column) {
+                    var cell = $('<td>');
+                    cell.text(item[column]);
+                    row.append(cell);
+                });
+
+                var editButton = $('<button>');
+                editButton.addClass('edit-patient');
+                editButton.text('Edit');
+                editButton.data('patient-id', item.Id);
+                row.append(editButton);
+
+                tableBody.append(row);
+            });
+        }
+
+        function fetchData(url, tableId, columns) {
+            $.ajax({
+                url: url,
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    var table = $(`
+                <table id="${tableId}">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Фамилия</th>
+                            <th>Имя</th>
+                            <th>Отчество</th>
+                            <th>Пол</th>
+                            <th>Дата рождения</th>
+                            <th>Адрес</th>
+                            <th>Район</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            `);
+                    $('#' + tableId).remove();
+                    $('#patientsList').append(table);
+                    addRowToTable(tableId, data, columns);
+
+                    $("#patientsTable").on('click', '.edit-patient', function () {
+                        var patientId = $(this).data('patient-id');
+                        window.location.href = `patient-edit.html?id=${patientId}`;
+                    });
+                },
+                error: function (error) {
+                    console.error("Ошибка получения данных:", error);
+                }
+            });
+        }
+
+    </script>
+
+</body>
+</html>

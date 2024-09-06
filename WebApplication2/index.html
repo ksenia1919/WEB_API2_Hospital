@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Тестовое</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border: 1px solid black;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Список пациентов</h1>
+
+    <table id="patientsTable">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Фамилия</th>
+                <th>Имя</th>
+                <th>Отчество</th>
+                <th>Пол</th>
+                <th>Дата рождения</th>
+                <th>Адрес</th>
+                <th>Район</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Данные будут добавлены здесь -->
+        </tbody>
+    </table>
+
+    <button onclick="window.location.href = 'patients.html'">Добавить пациента</button>
+    <button onclick="window.location.href = 'patients-edit.html'">Редактировать запись</button>
+    <button onclick="window.location.href='patients-delete.html'">Удалить запись</button>
+    <button onclick="window.location.href='sort-patients.html'">Пример сортировки</button>
+
+    <h1>Список врачей</h1>
+
+    <table id="doctorsTable">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>ФИО</th>
+                <th>Кабинет</th>
+                <th>Специализация</th>
+                <th>Участок</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Данные будут добавлены здесь -->
+        </tbody>
+    </table>
+
+    <button onclick="window.location.href = 'doctors.html'">Добавить врача</button>
+    <button onclick="window.location.href = 'doctors-edit.html'">Редактировать запись</button>
+    <button onclick="window.location.href='doctors-delete.html'">Удалить запись</button>
+    <button onclick="window.location.href='sort-doctors.html'">Пример сортировки</button>
+
+    <h1>Список участков</h1>
+
+    <table id="districtsTable">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Номер</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Данные будут добавлены здесь -->
+        </tbody>
+    </table>
+
+    <h1>Список специализаций</h1>
+
+    <table id="specializationsTable">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Название</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Данные будут добавлены здесь -->
+        </tbody>
+    </table>
+
+    <h1>Список кабинетов</h1>
+
+    <table id="cabinetsTable">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Номер</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Данные будут добавлены здесь -->
+        </tbody>
+    </table>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script>
+        function addRowToTable(tableId, data, columns) {
+            var tableBody = $(`#${tableId} tbody`);
+            $.each(data, function (index, item) {
+                var row = $('<tr>');
+                $.each(columns, function (i, column) {
+                    var cell = $('<td>');
+                    cell.text(item[column]);
+                    row.append(cell);
+                });
+                tableBody.append(row);
+            });
+        }
+        function fetchData(url, tableId, columns) {
+            $.ajax({
+                url: url,
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    addRowToTable(tableId, data, columns);
+                },
+                error: function (error) {
+                    console.error("Ошибка получения данных:", error);
+                }
+            });
+        }
+        $(document).ready(function () {
+            fetchData("api/Patient", "patientsTable", ["Id", "LastName", "FirstName", "MiddleName", "Gender", "DateOfBirth", "Adress", "DistrictNumber"]);
+            fetchData("api/Doctor", "doctorsTable", ["Id", "FullName", "CabinetNumber", "SpecializationName", "DistrictNumber"]);
+            fetchData("api/District", "districtsTable", ["Id", "Number"]);
+            fetchData("api/Specialization", "specializationsTable", ["Id", "Name_s"]);
+            fetchData("api/Cabinet", "cabinetsTable", ["Id", "Number"]);
+
+        });
+
+    </script>
+
+</body>
+</html>

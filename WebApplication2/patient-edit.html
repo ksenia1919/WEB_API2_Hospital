@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Редактирование пациента</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Редактирование пациента</h1>
+
+    <form id="editPatientForm">
+        <input type="hidden" id="patientId" name="patientId">
+
+        <label for="lastName">Фамилия:</label>
+        <input type="text" id="lastName" name="lastName">
+
+        <label for="firstName">Имя:</label>
+        <input type="text" id="firstName" name="firstName">
+
+        <label for="middleName">Отчество:</label>
+        <input type="text" id="middleName" name="middleName">
+
+        <label for="gender">Пол:</label>
+        <select id="gender" name="gender">
+            <option value="Мужской">Мужской</option>
+            <option value="Женский">Женский</option>
+        </select>
+
+        <label for="dateOfBirth">Дата рождения:</label>
+        <input type="text" id="dateOfBirth" name="dateOfBirth">
+
+        <label for="adress">Адрес:</label>
+        <input type="text" id="adress" name="adress">
+
+        <label for="districtId">Район:</label>
+        <select id="districtId" name="districtId">
+            <!-- Опции будут добавлены динамически -->
+        </select>
+
+        <button type="submit">Сохранить</button>
+    </form>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var urlParams = new URLSearchParams(window.location.search);
+            var patientId = urlParams.get('id');
+
+            $.ajax({
+                url: `api/Patient/${patientId}`,
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    $("#patientId").val(data.Id);
+                    $("#lastName").val(data.LastName);
+                    $("#firstName").val(data.FirstName);
+                    $("#middleName").val(data.MiddleName);
+                    $("#gender").val(data.Gender);
+                    $("#dateOfBirth").val(data.DateOfBirth);
+                    $("#adress").val(data.Adress);
+
+                    fillSelect("api/District", "#districtId", "Number", data.DistrictId);
+                },
+                error: function (error) {
+                    console.error("Ошибка получения данных:", error);
+                }
+            });
+
+            $("#editPatientForm").submit(function (event) {
+                event.preventDefault();
+
+                var formData = {
+                    Id: parseInt($("#patientId").val()),
+                    LastName: $("#lastName").val(),
+                    FirstName: $("#firstName").val(),
+                    MiddleName: $("#middleName").val(),
+                    Gender: $("#gender").val(),
+                    DateOfBirth: $("#dateOfBirth").val(),
+                    Adress: $("#adress").val(),
+                    DistrictId: parseInt($("#districtId").val())
+                };
+
+                $.ajax({
+                    url: `api/Patient/${formData.Id}`, 
+                    type: "PUT",
+                    dataType: "json",
+                    data: JSON.stringify(formData),
+                    contentType: "application/json",
+                    success: function (data) {
+                        console.log("Пациент обновлен успешно!");
+                        window.location.href = "patients-edit.html"; 
+                    },
+                    error: function (error) {
+                        console.error("Ошибка обновления данных:", error);
+                    }
+                });
+            });
+        });
+
+        function fillSelect(url, selectId, valueField, selectedValue) {
+            $.ajax({
+                url: url,
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    var select = $(selectId);
+                    select.empty();
+                    $.each(data, function (index, item) {
+                        var option = $(`<option value="${item.Id}">${item[valueField]}</option>`);
+                        if (item.Id === selectedValue) { 
+                            option.prop("selected", true);
+                        }
+                        select.append(option);
+                    });
+                },
+                error: function (error) {
+                    console.error("Ошибка получения данных:", error);
+                }
+            });
+        }
+
+    </script>
+
+</body>
+</html>

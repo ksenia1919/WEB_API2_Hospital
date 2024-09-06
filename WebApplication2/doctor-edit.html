@@ -1,0 +1,122 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Редактирование Врача</title>
+    <style>
+       
+    </style>
+</head>
+<body>
+
+    <h1>Редактирование врача</h1>
+
+    <form id="editDoctorForm">
+        <input type="hidden" id="doctorId" name="doctorId">
+
+        <label for="fullName">ФИО:</label>
+        <input type="text" id="fullName" name="fullName">
+
+        <label for="cabinetId">Кабинет:</label>
+        <select id="cabinetId" name="cabinetId">
+            <!-- Опции будут добавлены динамически -->
+        </select>
+
+        <label for="specializationId">Специализация:</label>
+        <select id="specializationId" name="specializationId">
+            <!-- Опции будут добавлены динамически -->
+        </select>
+
+        <label for="districtId">Участок:</label>
+        <select id="districtIdDoctor" name="districtId">
+            <!-- Опции будут добавлены динамически -->
+        </select>
+
+        <button type="submit">Сохранить</button>
+    </form>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var urlParams = new URLSearchParams(window.location.search);
+            var doctorId = urlParams.get('id');
+
+            $.ajax({
+                url: `api/Doctor/${doctorId}`,
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    $("#doctorId").val(data.Id);
+                    $("#fullName").val(data.FullName);
+                    fillSelect("api/Cabinet", "#cabinetId", "Number", data.CabinetId);
+                    fillSelect("api/Specialization", "#specializationId", "Name_s", data.SpecializationId);
+                    fillSelect("api/District", "#districtIdDoctor", "Number", data.DistrictId);
+                },
+                error: function (error) {
+                    console.error("Ошибка получения данных:", error);
+                }
+            });
+
+            $("#editDoctorForm").submit(function (event) {
+                event.preventDefault();
+
+                if ($("#fullName").val() === "") {
+                    alert("Пожалуйста, введите ФИО врача!");
+                    return;
+                }
+
+                var formData = {
+                    Id: parseInt($("#doctorId").val()),
+                    FullName: $("#fullName").val(),
+                    CabinetId: parseInt($("#cabinetId").val()),
+                    SpecializationId: parseInt($("#specializationId").val()),
+                    DistrictId: $("#districtIdDoctor").val() ? parseInt($("#districtIdDoctor").val()) : null
+                };
+
+                $.ajax({
+                    url: `api/Doctor/${formData.Id}`, 
+                    type: "PUT",
+                    dataType: "json",
+                    data: JSON.stringify(formData),
+                    contentType: "application/json",
+                    success: function (data) {
+                        console.log("Врач обновлен успешно!");
+                        window.location.href = "doctors-edit.html"; 
+                    },
+                    error: function (error) {
+                        console.error("Ошибка обновления данных:", error);
+                    }
+                });
+            });
+        });
+
+        function fillSelect(url, selectId, valueField, selectedValue) {
+            $.ajax({
+                url: url,
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    var select = $(selectId);
+                    select.empty();
+
+                    if (selectId === "#districtIdDoctor") {
+                        select.append(`<option value="">нет</option>`);
+                    }
+
+                    $.each(data, function (index, item) {
+                        var option = $(`<option value="${item.Id}">${item[valueField]}</option>`);
+                        if (item.Id === selectedValue) { 
+                            option.prop("selected", true);
+                        }
+                        select.append(option);
+                    });
+                },
+                error: function (error) {
+                    console.error("Ошибка получения данных:", error);
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>

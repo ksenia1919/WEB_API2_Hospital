@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Список докторов</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border: 1px solid black;
+        }
+
+        .add-form {
+            margin-top: 20px;
+        }
+
+        .add-form label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .add-form input,
+        .add-form select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .add-form button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Список врачей</h1>
+
+    <table id="doctorsTable">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>ФИО</th>
+                <th>Кабинет</th>
+                <th>Специализация</th>
+                <th>Участок</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Данные будут добавлены здесь -->
+        </tbody>
+    </table>
+
+    <div class="add-form">
+        <h2>Добавить врача</h2>
+        <form id="addDoctorForm">
+            <label for="fullName">ФИО:</label>
+            <input type="text" id="fullName" name="fullName">
+
+            <label for="cabinetId">Кабинет:</label>
+            <select id="cabinetId" name="cabinetId">
+                <!-- Опции будут добавлены динамически -->
+            </select>
+
+            <label for="specializationId">Специализация:</label>
+            <select id="specializationId" name="specializationId">
+                <!-- Опции будут добавлены динамически -->
+            </select>
+
+            <label for="districtId">Участок:</label>
+            <select id="districtIdDoctor" name="districtId">
+                <!-- Опции будут добавлены динамически -->
+            </select>
+
+            <button type="submit">Добавить</button>
+        </form>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script>
+        function addRowToTable(tableId, data, columns) {
+            var tableBody = $(`#${tableId} tbody`);
+            $.each(data, function (index, item) {
+                var row = $('<tr>');
+                $.each(columns, function (i, column) {
+                    var cell = $('<td>');
+                    cell.text(item[column]);
+                    row.append(cell);
+                });
+                tableBody.append(row);
+            });
+        }
+        function fetchData(url, tableId, columns) {
+            $.ajax({
+                url: url,
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    addRowToTable(tableId, data, columns);
+                },
+                error: function (error) {
+                    console.error("Ошибка получения данных:", error);
+                }
+            });
+        }
+        $(document).ready(function () {
+            fetchData("api/Doctor", "doctorsTable", ["Id", "FullName", "CabinetNumber", "SpecializationName", "DistrictNumber"]);
+
+            $.ajax({
+                url: "api/Cabinet",
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    var cabinetSelect = $("#cabinetId");
+                    $.each(data, function (index, cabinet) {
+                        cabinetSelect.append(`<option value="${cabinet.Id}">${cabinet.Number}</option>`);
+                    });
+                },
+                error: function (error) {
+                    console.error("Ошибка получения данных:", error);
+                }
+            });
+
+            $.ajax({
+                url: "api/Specialization",
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    var specializationSelect = $("#specializationId");
+                    $.each(data, function (index, specialization) {
+                        specializationSelect.append(`<option value="${specialization.Id}">${specialization.Name_s}</option>`);
+                    });
+                },
+                error: function (error) {
+                    console.error("Ошибка получения данных:", error);
+                }
+            });
+
+            $.ajax({
+                url: "api/District",
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    var districtSelect = $("#districtIdDoctor");
+                    districtSelect.append('<option value="">нет</option>');
+                    $.each(data, function (index, district) {
+                        districtSelect.append(`<option value="${district.Id}">${district.Number}</option>`);
+                    });
+                },
+                error: function (error) {
+                    console.error("Ошибка получения данных:", error);
+                }
+            });
+
+            $("#addDoctorForm").submit(function (event) {
+                event.preventDefault();
+
+                if ($("#fullName").val() === "") {
+                    alert("Пожалуйста, введите ФИО врача!");
+                    return;
+                }
+
+                var formData = {
+                    FullName: $("#fullName").val(),
+                    CabinetId: parseInt($("#cabinetId").val()),
+                    SpecializationId: parseInt($("#specializationId").val()),
+                    DistrictId: $("#districtIdDoctor").val() ? parseInt($("#districtIdDoctor").val()) : null
+                };
+
+                $.ajax({
+                    url: "api/Doctor",
+                    type: "POST",
+                    dataType: "json",
+                    data: JSON.stringify(formData),
+                    contentType: "application/json",
+                    success: function (data) {
+                        console.log("Врач добавлен успешно!");
+                        $("#doctorsTable tbody").empty();
+                        fetchData("api/Doctor", "doctorsTable", ["Id", "FullName", "CabinetNumber", "SpecializationName", "DistrictNumber"]);
+                        $("#addDoctorForm")[0].reset();
+                        location.reload();
+                    },
+                    error: function (error) {
+                        console.error("Ошибка добавления врача:", error);
+                    },
+                    complete: function () {
+                        console.log("Запрос завершен!");
+                        location.reload();
+                    }
+                });
+            });
+
+        });
+    </script>
+
+</body>
+</html>

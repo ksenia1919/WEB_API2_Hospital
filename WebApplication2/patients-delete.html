@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Удаление пациента</title>
+    <style>
+        .deleteForm {
+            margin-top: 20px;
+        }
+
+        .deleteForm label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .deleteForm input,
+        .deleteForm select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .deleteForm button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Удаление врача</h1>
+    <form id="deletePatientForm">
+        <label for="patientId">Введите ID пациента:</label>
+        <input type="number" id="patientId" name="patientId" required>
+        <button type="submit">Удалить</button>
+    </form>
+    <script>
+        const deletePatientForm = document.getElementById('deletePatientForm');
+
+        deletePatientForm.addEventListener('submit', (event) => {
+            event.preventDefault(); 
+
+            const patientId = document.getElementById('patientId').value;
+
+            fetch(`/api/Patient/${patientId}`, { 
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Запись успешно удалена!');
+                        window.location.href = "index.html"
+                    } else {
+                        alert('Ошибка при удалении записи');
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при отправке запроса:', error);
+                    alert('Произошла ошибка, пожалуйста, попробуйте позже.');
+                });
+        });
+    </script>
+</body>
+</html>
